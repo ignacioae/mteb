@@ -1,0 +1,6 @@
+id,text,image_path,metadata,product_counts,text_embedding,image_embedding
+TECHQ001,wireless headphones for music,images/query_tech_001.jpg,"{""intent"": ""purchase"", ""use_case"": ""music"", ""feature"": ""wireless""}",25,"[0.7, 0.3, 0.8, 0.2, 0.9, 0.1, 0.6, 0.4, 0.5, 0.7]","[0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.4, 0.6, 0.7, 0.3]"
+TECHQ002,gaming keyboard with RGB,images/query_tech_002.jpg,"{""intent"": ""purchase"", ""use_case"": ""gaming"", ""feature"": ""RGB""}",18,"[0.6, 0.4, 0.8, 0.2, 0.7, 0.3, 0.9, 0.1, 0.4, 0.6]","[0.5, 0.8, 0.3, 0.6, 0.2, 0.7, 0.1, 0.9, 0.4, 0.5]"
+TECHQ003,webcam for streaming,images/query_tech_003.jpg,"{""intent"": ""purchase"", ""use_case"": ""streaming"", ""quality"": ""high""}",12,"[0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.5, 0.4]","[0.7, 0.1, 0.8, 0.4, 0.6, 0.2, 0.9, 0.3, 0.1, 0.8]"
+TECHQ004,external storage drive,images/query_tech_004.jpg,"{""intent"": ""purchase"", ""use_case"": ""storage"", ""type"": ""external""}",8,"[0.2, 0.8, 0.5, 0.5, 0.7, 0.3, 0.6, 0.4, 0.8, 0.2]","[0.6, 0.2, 0.9, 0.1, 0.7, 0.3, 0.8, 0.4, 0.2, 0.6]"
+TECHQ005,computer accessories,images/query_tech_005.jpg,"{""intent"": ""browse"", ""category"": ""accessories"", ""device"": ""computer""}",30,"[0.5, 0.5, 0.6, 0.4, 0.7, 0.3, 0.8, 0.2, 0.4, 0.6]","[0.3, 0.7, 0.1, 0.9, 0.2, 0.8, 0.4, 0.6, 0.5, 0.3]"

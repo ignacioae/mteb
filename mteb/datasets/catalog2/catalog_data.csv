@@ -1,7 +1,0 @@
-sku,name,description,category,price,stock_count,text_embedding
-SKU001,Summer Floral Dress,Beautiful floral dress perfect for summer occasions,Dresses,89.99,15,"[0.2, 0.8, 0.1, 0.9, 0.3, 0.7, 0.4, 0.6, 0.5, 0.2]"
-SKU002,Leather Handbag,Premium leather handbag with multiple compartments,Bags,149.99,8,"[0.7, 0.3, 0.8, 0.2, 0.6, 0.4, 0.9, 0.1, 0.5, 0.7]"
-SKU003,Casual Cotton T-Shirt,Comfortable cotton t-shirt for everyday wear,Tops,24.99,50,"[0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.5, 0.4]"
-SKU004,Wool Knit Sweater,Cozy wool sweater for cold weather,Knitwear,79.99,12,"[0.1, 0.9, 0.4, 0.6, 0.8, 0.2, 0.7, 0.3, 0.5, 0.8]"
-SKU005,Designer Crossbody Bag,Stylish crossbody bag for modern women,Bags,199.99,5,"[0.8, 0.2, 0.9, 0.1, 0.7, 0.3, 0.6, 0.4, 0.2, 0.9]"
-SKU006,Knitted Cardigan,Soft knitted cardigan with button closure,Knitwear,64.99,2,"[0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.4, 0.6, 0.7, 0.3]"

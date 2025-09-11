@@ -1,0 +1,4 @@
+id,text,image_path,metadata,product_counts,text_embedding,image_embedding
+QUERY_S001,summer outfit for vacation,images/query_s001.jpg,"{""intent"": ""purchase"", ""season"": ""summer"", ""occasion"": ""vacation""}",15,"[0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 0.5, 0.5, 0.6, 0.3]","[0.2, 0.8, 0.1, 0.9, 0.3, 0.7, 0.4, 0.6, 0.5, 0.2]"
+QUERY_S002,casual summer wear,images/query_s002.jpg,"{""intent"": ""browse"", ""season"": ""summer"", ""style"": ""casual""}",50,"[0.5, 0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.6, 0.4]","[0.4, 0.6, 0.2, 0.8, 0.3, 0.7, 0.1, 0.9, 0.5, 0.4]"
+QUERY_S003,comfortable footwear,images/query_s003.jpg,"{""intent"": ""purchase"", ""category"": ""footwear"", ""comfort"": ""high""}",20,"[0.4, 0.6, 0.5, 0.5, 0.7, 0.3, 0.6, 0.4, 0.3, 0.7]","[0.6, 0.2, 0.9, 0.1, 0.7, 0.3, 0.8, 0.4, 0.2, 0.6]"

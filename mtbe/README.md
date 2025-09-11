@@ -1,369 +1,379 @@
-# Cline Version: Multimodal Retrieval Framework
+# MTBE Advanced Multimodal Evaluation System
 
-A framework for evaluating multimodal retrieval models, designed to be analogous to MTEB but optimized for text-image and multimodal retrieval tasks using FAISS for efficient similarity search.
+A sophisticated evaluation system for multimodal text/image retrieval using SLERP (Spherical Linear Interpolation) fusion and advanced indexing with FAISS.
 
-## 🚀 Quick Start
+## Overview
 
-```python
-import cline_version as cv
+The MTBE (Massive Text and Business Embedding) Advanced System provides a comprehensive framework for evaluating multimodal retrieval models with:
 
-# Load tasks and model
-tasks = cv.get_tasks(tasks=["SampleImageTextRetrieval"])
-model = cv.get_model("sample-multimodal-encoder")
+- **SLERP Fusion**: Spherical linear interpolation for optimal text/image combination
+- **Extensible Architecture**: Support for custom encoders and adapters
+- **FAISS Integration**: Efficient similarity search with GPU acceleration
+- **Intelligent Caching**: Automatic caching of embeddings and transformations
+- **Configuration-Driven**: JSON-based configuration for reproducible experiments
 
-# Run evaluation
-evaluator = cv.MultimodalMTEB(tasks=tasks)
-results = evaluator.run(model, output_folder="results")
+## Key Features
 
-# Analyze results
-from cline_version.evaluation.MultimodalMTEB import BenchmarkResults
-benchmark_results = BenchmarkResults("results")
-benchmark_results.print_leaderboard()
-```
+- **SLERP Multimodal Fusion**: Advanced spherical interpolation for text/image embeddings
+- **Custom Encoders**: Support for HuggingFace models, custom models, and precomputed embeddings
+- **Flexible Adapters**: PCA, normalization, rotation, scaling, and composite transformations
+- **FAISS Indexing**: Multiple index types (Flat, IVF, HNSW) with GPU support
+- **Comprehensive Evaluation**: NDCG@k metrics with parameter optimization
+- **Standardized Dataset Format**: Support for both text and image data
 
-## 🎯 Key Features
+## Quick Start
 
-- **🔍 FAISS-based Evaluation**: Efficient similarity search for large-scale retrieval
-- **🖼️ Multimodal Support**: Text, image, and combined multimodal embeddings
-- **📊 MTEB-like API**: Familiar interface for MTEB users
-- **🔧 Extensible Architecture**: Easy to add new tasks and models
-- **📈 Comprehensive Metrics**: nDCG@100, Recall@k, MAP, and more
-- **⚡ Performance Optimized**: Uses your existing FAISS-based evaluation approach
-
-## 🏗️ Architecture
-
-The framework follows MTEB's design patterns but is specialized for multimodal retrieval:
-
-```
-cline_version/
-├── __init__.py                 # Main API (analogous to mteb.__init__.py)
-├── overview.py                 # Task management (analogous to mteb.overview)
-├── encoder_interface.py        # Model interfaces
-├── model_meta.py              # Model metadata
-├── abstasks/                  # Abstract task classes
-│   ├── AbsTask.py             # Base task class
-│   ├── AbsTaskMultimodalRetrieval.py  # Multimodal retrieval base
-│   └── TaskMetadata.py        # Task metadata
-├── tasks/                     # Concrete task implementations
-│   └── sample_image_text_retrieval.py
-├── models/                    # Model implementations
-│   └── sample_models.py       # Sample encoders
-├── evaluation/                # Evaluation pipeline
-│   ├── MultimodalMTEB.py      # Main evaluator (analogous to MTEB.py)
-│   └── faiss_retrieval_evaluator.py  # FAISS-based evaluation
-├── benchmarks/                # Benchmark definitions
-├── datasets/                  # Sample datasets with test splits
-└── examples/                  # Usage examples
-```
-
-## 📦 Installation
+### Basic Evaluation (Precomputed Embeddings)
 
 ```bash
-# Clone or copy the cline_version folder
-cd cline_version
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Or install manually
-pip install numpy faiss-cpu
+cd mtbe
+python run_advanced_evaluation.py --config config_examples/basic_config.json
 ```
 
-For GPU acceleration:
+### SLERP Evaluation
+
 ```bash
-pip install faiss-gpu
+python run_evaluation.py
 ```
 
-## 🎮 Usage Examples
+### Custom Configuration
 
-### Basic Evaluation
+```bash
+python run_advanced_evaluation.py --encoder mock --adapter normalize --dataset electronics
+```
+
+## Core Concepts
+
+### SLERP Multimodal Fusion
+
+The system uses Spherical Linear Interpolation (SLERP) for optimal multimodal fusion:
+
+**Query Fusion:**
+```
+query_fused = slerp(query_text_embedding, query_image_embedding, α)
+```
+
+**Catalog Fusion:**
+```
+catalog_fused = slerp(catalog_text_embedding, catalog_image_embedding, β)
+```
+
+**Parameters:**
+- `α = 0.0`: Text-only queries
+- `α = 1.0`: Image-only queries  
+- `α = 0.5`: Balanced text/image fusion
+- `β = 0.0`: Text-only catalog
+- `β = 1.0`: Image-only catalog
+- `β = 0.5`: Balanced text/image catalog
+
+### Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│    Encoders     │    │    Adapters     │    │ FAISS Engine   │
+│                 │    │                 │    │                 │
+│ • Custom Models │───▶│ • PCA           │───▶│ • GPU Support   │
+│ • HuggingFace   │    │ • Normalization │    │ • Index Types   │
+│ • Precomputed   │    │ • Rotation      │    │ • SLERP Fusion  │
+│ • Mock/Testing  │    │ • Composite     │    │ • Batch Eval    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## Dataset Format
+
+The MTBE system requires datasets in CSV format with specific column structures. All datasets must follow this standardized format for proper evaluation.
+
+### Catalog Dataset CSV Format
+
+**Required Columns (must be present):**
+- `id` (string): Unique item identifier (e.g., "TECH001", "ITEM001")
+- `text` (string): Text description/content of the item
+- `image_path` (string): Relative path to associated image file
+- `metadata` (string): JSON-formatted metadata containing additional item information
+
+**Optional Columns (for precomputed embeddings):**
+- `text_embedding` (string): JSON array of floats representing text embedding (e.g., "[0.2, 0.8, 0.1, ...]")
+- `image_embedding` (string): JSON array of floats representing image embedding (e.g., "[0.1, 0.3, 0.7, ...]")
+
+**Column Data Types:**
+- `id`: String (no spaces, alphanumeric + underscore recommended)
+- `text`: String (any length, UTF-8 encoded)
+- `image_path`: String (relative path from dataset root)
+- `metadata`: String (valid JSON format, escaped quotes)
+- `text_embedding`: String (JSON array format: "[float1, float2, ...]")
+- `image_embedding`: String (JSON array format: "[float1, float2, ...]")
+
+**Example Catalog CSV:**
+```csv
+id,text,image_path,metadata,text_embedding,image_embedding
+TECH001,Wireless Bluetooth Headphones - High-quality wireless headphones with noise cancellation,images/headphones_001.jpg,"{""category"": ""Audio"", ""price"": 199.99, ""brand"": ""SoundTech"", ""wireless"": true}","[0.8, 0.2, 0.7, 0.3, 0.9, 0.1, 0.6, 0.4, 0.5, 0.8]","[0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.4, 0.6, 0.7, 0.3]"
+ITEM001,Summer Floral Dress - Beautiful floral dress perfect for summer occasions,images/dress_001.jpg,"{""category"": ""Dresses"", ""price"": 89.99, ""brand"": ""SummerStyle""}","[0.2, 0.8, 0.1, 0.9, 0.3, 0.7, 0.4, 0.6, 0.5, 0.2]","[0.1, 0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 0.9, 0.1, 0.5]"
+```
+
+### Test Dataset CSV Format
+
+**Required Columns (must be present):**
+- `id` (string): Unique query identifier (e.g., "QUERY001", "TEST001")
+- `text` (string): Query text describing what the user is searching for
+- `image_path` (string): Relative path to query image file
+- `metadata` (string): JSON-formatted metadata containing query context
+- `product_counts` (integer): Relevance score or count (0 to N, higher = more relevant)
+
+**Optional Columns (for precomputed embeddings):**
+- `text_embedding` (string): JSON array of floats representing query text embedding
+- `image_embedding` (string): JSON array of floats representing query image embedding
+
+**Column Data Types:**
+- `id`: String (no spaces, alphanumeric + underscore recommended)
+- `text`: String (search query, any length, UTF-8 encoded)
+- `image_path`: String (relative path from dataset root)
+- `metadata`: String (valid JSON format, escaped quotes)
+- `product_counts`: Integer (0 to N, relevance score)
+- `text_embedding`: String (JSON array format: "[float1, float2, ...]")
+- `image_embedding`: String (JSON array format: "[float1, float2, ...]")
+
+**Example Test CSV:**
+```csv
+id,text,image_path,metadata,product_counts,text_embedding,image_embedding
+QUERY001,summer dress,images/query_dress.jpg,"{""intent"": ""purchase"", ""season"": ""summer""}",15,"[0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.4, 0.6, 0.7, 0.3]","[0.2, 0.8, 0.1, 0.9, 0.3, 0.7, 0.4, 0.6, 0.5, 0.2]"
+QUERY002,wireless headphones,images/query_headphones.jpg,"{""intent"": ""research"", ""budget"": ""high""}",8,"[0.8, 0.2, 0.7, 0.3, 0.9, 0.1, 0.6, 0.4, 0.5, 0.8]","[0.3, 0.7, 0.2, 0.8, 0.1, 0.9, 0.4, 0.6, 0.7, 0.3]"
+```
+
+### Important Notes
+
+1. **No Extra Columns**: Avoid columns like "Unnamed: 0" which can cause parsing errors
+2. **Consistent Embedding Dimensions**: All embeddings in the same dataset must have the same dimensionality
+3. **JSON Escaping**: Metadata must use escaped quotes: `"{""key"": ""value""}"`
+4. **File Encoding**: Use UTF-8 encoding for all CSV files
+5. **Path Separators**: Use forward slashes (/) in image paths for cross-platform compatibility
+6. **Header Row**: First row must contain column names exactly as specified above
+
+## Project Structure
+
+```
+mtbe/
+├── run_evaluation.py              # SLERP evaluation script
+├── run_advanced_evaluation.py     # Advanced evaluation pipeline
+├── models/
+│   ├── encoders.py                # Base encoder system
+│   ├── fashionclip_encoder.py     # FashionCLIP encoder
+│   ├── adapters.py                # Base adapter system  
+│   ├── finetuning_adapter.py      # Fine-tuning adapter
+│   ├── slerp_adapter.py           # SLERP multimodal adapter
+│   ├── faiss_engine.py            # FAISS evaluation engine
+│   └── dataset_utils.py           # Dataset loading utilities
+├── config_examples/               # Configuration examples
+├── datasets/                      # Sample datasets
+│   ├── fashion_ecommerce/
+│   └── electronics/
+└── README.md                      # This file
+```
+
+## Usage Examples
+
+### Basic SLERP Usage
 
 ```python
-import cline_version as cv
+from models.dataset_utils import load_dataset
+from models.slerp_adapter import SLERPMultimodalAdapter
 
-# List available tasks
-cv.print_available_tasks()
+# Load dataset
+catalog_data, test_data = load_dataset('fashion_ecommerce')
+catalog_ids, catalog_texts, _, _, catalog_text_embeddings, catalog_image_embeddings = catalog_data
+test_ids, test_texts, _, _, test_counts, test_text_embeddings, test_image_embeddings = test_data
 
-# Get specific tasks
-tasks = cv.get_tasks(
-    task_types=["Retrieval"],
-    modalities=["text", "image"]
+# Create SLERP adapter
+adapter = SLERPMultimodalAdapter(catalog_text_embeddings, catalog_image_embeddings)
+
+# Retrieve top-k items with SLERP fusion
+alpha = 0.5  # Query fusion parameter
+beta = 0.5   # Catalog fusion parameter
+top_indices, similarities = adapter.retrieve_top_k(
+    test_text_embeddings[0], test_image_embeddings[0], alpha, beta, k=10
 )
 
-# Load a model
-model = cv.get_model("sample-multimodal-encoder")
+# Calculate NDCG
+relevance_scores = [1.0, 0.8, 0.6, 0.4, 0.2] * 20  # Mock relevance scores
+ndcg_score = adapter.calculate_ndcg(top_indices, relevance_scores, k=5)
 
-# Run evaluation
-evaluator = cv.MultimodalMTEB(tasks=tasks)
-results = evaluator.run(
-    model=model,
-    output_folder="results",
-    verbosity=2
+print(f"NDCG@5: {ndcg_score:.4f}")
+print(f"Top 5 retrieved items: {top_indices[:5]}")
+```
+
+### Advanced Pipeline with Custom Encoder
+
+```python
+from models.encoders import get_encoder
+from models.adapters import get_adapter
+from models.faiss_engine import FAISSEvaluationEngine
+
+# Initialize components
+encoder = get_encoder({
+    "type": "huggingface",
+    "text_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "image_model": "sentence-transformers/clip-ViT-B-32"
+})
+
+adapter = get_adapter({
+    "type": "pca",
+    "n_components": 128
+})
+
+engine = FAISSEvaluationEngine(use_gpu=True)
+
+# Generate and transform embeddings
+text_embeddings, image_embeddings = encoder.encode_dataset(
+    texts, image_paths, "my_dataset", "catalog"
+)
+
+transformed_text, transformed_image = adapter.transform_dataset(
+    text_embeddings, image_embeddings, encoder.name, "my_dataset", "catalog"
 )
 ```
 
-### Custom Model Integration
+### FashionCLIP with Fine-tuning
 
 ```python
-from cline_version.encoder_interface import MultimodalEncoder
-from cline_version.model_meta import ModelMeta
-import numpy as np
+from models.fashionclip_encoder import FashionCLIPEncoder
+from models.finetuning_adapter import FineTuningAdapter
 
-class MyCustomModel(MultimodalEncoder):
-    def __init__(self):
-        super().__init__()
-        self.model_name = "my-custom-model"
-        
-        # Set model metadata
-        self.mteb_model_meta = ModelMeta(
-            name="my-custom-model",
-            modalities=["text", "image"],
-            framework="custom"
-        )
-    
-    def encode_text(self, texts, *, task_name, **kwargs):
-        # Your text encoding logic here
-        return np.random.randn(len(texts), 384)
-    
-    def encode_image(self, images, *, task_name, **kwargs):
-        # Your image encoding logic here
-        return np.random.randn(len(images), 384)
+# Initialize FashionCLIP encoder
+encoder = FashionCLIPEncoder(
+    model_path="path/to/fashionclip/model",
+    device="cuda"
+)
 
-# Use your custom model
-model = MyCustomModel()
-evaluator = cv.MultimodalMTEB(tasks=tasks)
-results = evaluator.run(model, output_folder="results")
+# Initialize fine-tuning adapter
+adapter = FineTuningAdapter(
+    method="mlp",
+    input_dim=512,
+    hidden_dims=[256, 128],
+    output_dim=128,
+    learning_rate=0.001
+)
+
+# Encode and transform
+text_embeddings = encoder.encode_text(texts)
+image_embeddings = encoder.encode_image(image_paths)
+
+# Apply fine-tuning transformation
+transformed_embeddings = adapter.transform_embeddings(text_embeddings)
 ```
 
-### Benchmark Evaluation
+## Configuration
 
-```python
-# Load a predefined benchmark
-benchmark = cv.get_benchmark("SAMPLE_MULTIMODAL_BENCHMARK")
-print(f"Benchmark: {benchmark.name}")
-print(f"Tasks: {len(benchmark.tasks)}")
+### Basic Configuration
 
-# Run evaluation on the benchmark
-evaluator = cv.MultimodalMTEB(tasks=benchmark.tasks)
-results = evaluator.run(model, output_folder="results")
-```
-
-## 🔄 API Comparison with MTEB
-
-The framework maintains API compatibility with MTEB patterns:
-
-| MTEB | Cline Version | Purpose |
-|------|---------------|---------|
-| `mteb.get_tasks()` | `cv.get_tasks()` | Get filtered tasks |
-| `mteb.get_task()` | `cv.get_task()` | Get specific task |
-| `mteb.MTEB()` | `cv.MultimodalMTEB()` | Main evaluator |
-| `mteb.get_model()` | `cv.get_model()` | Load model |
-
-## 🎯 Key Differences from MTEB
-
-1. **FAISS Integration**: Uses FAISS for efficient similarity search instead of computing full similarity matrices
-2. **Multimodal Focus**: Specialized for text-image and multimodal retrieval tasks
-3. **Performance Optimized**: Designed for your existing FAISS-based evaluation workflow
-4. **Custom Metrics**: Optimized nDCG calculation using your preferred index-based approach
-
-## 📊 Evaluation Metrics
-
-The framework provides comprehensive retrieval metrics:
-
-- **nDCG@100**: Normalized Discounted Cumulative Gain
-- **Recall@k**: Recall at different cutoffs (1, 5, 10, 100)
-- **MAP**: Mean Average Precision
-- **Evaluation Time**: Performance benchmarking
-
-## 🗂️ Dataset Format
-
-Datasets follow a simple JSON Lines format:
-
-**queries.jsonl**:
-```json
-{"id": "q1", "text": "A red car parked on the street"}
-{"id": "q2", "text": "A cat sitting on a windowsill"}
-```
-
-**corpus.jsonl**:
-```json
-{"id": "doc1", "text": "Red sports car parked on city street", "image_path": "images/red_car.jpg"}
-{"id": "doc2", "text": "Orange tabby cat sitting by window", "image_path": "images/cat_window.jpg"}
-```
-
-**qrels/test.tsv**:
-```
-q1	doc1	1
-q1	doc21	1
-q2	doc2	1
-```
-
-## 🚀 Performance Tips
-
-1. **FAISS Index Selection**:
-   - `IndexFlatIP`: Exact search (default)
-   - `IndexIVFFlat`: Approximate search for large datasets
-   - `IndexHNSW`: Fast approximate search
-
-2. **Memory Optimization**:
-   - Use appropriate batch sizes
-   - Consider memory mapping for large datasets
-   - Use FAISS-GPU for acceleration
-
-3. **Evaluation Configuration**:
-   ```python
-   # Configure FAISS index type
-   evaluator = cv.MultimodalMTEB(tasks=tasks)
-   results = evaluator.run(
-       model=model,
-       faiss_index_type="IndexIVFFlat",  # For large datasets
-       top_k=100
-   )
-   ```
-
-## 📁 Sample Dataset
-
-The framework includes a sample dataset with:
-- 20 text queries
-- 40 multimodal corpus items (text + image paths)
-- Relevance judgments for evaluation
-- Test split configuration
-
-## 🔧 Extending the Framework
-
-### Adding a New Task
-
-```python
-from cline_version.abstasks.AbsTaskMultimodalRetrieval import AbsTaskMultimodalRetrieval
-from cline_version.abstasks.TaskMetadata import TaskMetadata
-
-class MyNewTask(AbsTaskMultimodalRetrieval):
-    metadata = TaskMetadata(
-        name="MyNewTask",
-        description="My custom retrieval task",
-        type="Retrieval",
-        modalities=["text", "image"],
-        eval_splits=["test"],
-        eval_langs=["eng"],
-        main_score="ndcg@100"
-    )
-```
-
-### Adding a New Model
-
-```python
-# Register your model in models/__init__.py
-MODEL_REGISTRY["my-model"] = MyCustomModel
-```
-
-## 📁 Dónde se Guardan los Resultados
-
-Los resultados se guardan automáticamente siguiendo la estructura de MTEB:
-
-```
-results/
-└── {model_name}/
-    └── {model_revision}/
-        ├── model_meta.json              # Metadatos del modelo
-        └── {task_name}.json             # Resultados de cada tarea
-```
-
-### Ejemplo de Estructura:
-```
-results/
-└── sample-multimodal-encoder/
-    └── v1.0/
-        ├── model_meta.json
-        └── SampleImageTextRetrieval.json
-```
-
-### Formato de Archivo de Resultados:
 ```json
 {
-  "task_name": "SampleImageTextRetrieval",
-  "scores": {
-    "test": [
-      {
-        "hf_subset": "default",
-        "ndcg@100": 0.8234,
-        "recall@1": 0.6500,
-        "recall@5": 0.8000,
-        "recall@10": 0.8500,
-        "map": 0.7123
-      }
-    ]
-  },
-  "evaluation_time": 12.34,
-  "dataset_revision": "main",
-  "mteb_version": "0.1.0"
+  "encoder": "precomputed",
+  "adapter": "identity",
+  "datasets": "all",
+  "alpha_values": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "beta_values": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "k_values": [1, 5, 10, 50],
+  "index_type": "flat",
+  "engine": {
+    "use_gpu": false,
+    "cache_dir": "cache"
+  }
 }
 ```
 
-## 📈 Análisis de Resultados
+### Advanced Configuration
 
-### 1. Acceso Directo Durante Evaluación:
-```python
-# Los resultados se retornan directamente
-results = evaluator.run(model, output_folder="results")
-
-for result in results:
-    print(f"Tarea: {result.task_name}")
-    test_scores = result.scores["test"][0]
-    print(f"nDCG@100: {test_scores['ndcg@100']}")
+```json
+{
+  "encoder": {
+    "type": "huggingface",
+    "text_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "image_model": "sentence-transformers/clip-ViT-B-32",
+    "device": "cuda"
+  },
+  "adapter": [
+    {"type": "normalize"},
+    {"type": "pca", "n_components": 64}
+  ],
+  "datasets": ["fashion_ecommerce"],
+  "alpha_values": [0.0, 0.5, 1.0],
+  "beta_values": [0.0, 0.5, 1.0],
+  "k_values": [1, 5, 10],
+  "index_type": "ivf",
+  "engine": {
+    "use_gpu": true,
+    "cache_dir": "cache/experiments"
+  }
+}
 ```
 
-### 2. Cargar Resultados Guardados:
-```python
-from cline_version.evaluation.MultimodalMTEB import BenchmarkResults
+## Results
 
-# Cargar todos los resultados de una carpeta
-results = BenchmarkResults("results")
+Results are automatically saved with timestamps:
 
-# Print leaderboard
-results.print_leaderboard()
+- **JSON file**: Detailed results with all metrics
+- **Text file**: Human-readable summary
 
-# Get specific task performance
-task_scores = results.get_leaderboard("SampleImageTextRetrieval")
-print(task_scores)
+### Sample Output
+
+```
+🎯 ADVANCED EVALUATION COMPLETE!
+==================================================
+📊 Key Findings:
+   • Encoder: mock_128
+   • Adapter: normalize
+   • Datasets evaluated: 1
+   • Average NDCG@5: 0.8595 ± 0.0000
+   • Best parameters: α=1.0, β=0.0
 ```
 
-### 3. Cargar Resultado Individual:
-```python
-from cline_version.evaluation.MultimodalMTEB import TaskResult
+## Performance
 
-# Cargar resultado específico
-result = TaskResult.from_disk("results/model-name/v1.0/TaskName.json")
-print(result.scores)
+### Efficiency Features
+
+1. **Pre-computed indices**: Catalog embeddings fused once per β value
+2. **Batch processing**: All queries evaluated simultaneously
+3. **Memory optimization**: Automatic cleanup of FAISS indices
+4. **Intelligent caching**: Avoid recomputation of embeddings
+
+### Scalability
+
+- **Small datasets** (< 1K items): Exact search with flat index
+- **Medium datasets** (1K-100K items): Approximate search with IVF
+- **Large datasets** (> 100K items): HNSW index with GPU acceleration
+
+## Adding New Datasets
+
+1. Create directory structure: `datasets/your_dataset/catalog/` and `datasets/your_dataset/test/`
+2. Add CSV files following the required format
+3. Run evaluation: `python run_advanced_evaluation.py`
+
+The system will automatically discover and evaluate new datasets.
+
+## Requirements
+
+### Required
+- Python 3.7+
+- NumPy
+- `faiss-cpu` or `faiss-gpu`
+
+### Optional
+- `sentence-transformers`: HuggingFace encoder support
+- `scikit-learn`: PCA adapter support
+- `PIL`: Image loading for HuggingFace image models
+
+### Installation
+
+```bash
+# CPU version
+pip install faiss-cpu numpy
+
+# GPU version (if CUDA available)
+pip install faiss-gpu numpy
+
+# Optional dependencies
+pip install sentence-transformers scikit-learn pillow
 ```
 
-### 4. Configurar Ubicación de Resultados:
-```python
-# Carpeta personalizada
-results = evaluator.run(model, output_folder="mis_resultados")
+## License
 
-# No guardar en disco
-results = evaluator.run(model, output_folder=None)
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Add your task/model implementation
-4. Update the registries
-5. Add tests and documentation
-6. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by the [MTEB](https://github.com/embeddings-benchmark/mteb) framework
-- Uses [FAISS](https://github.com/facebookresearch/faiss) for efficient similarity search
-- Designed for multimodal retrieval evaluation workflows
-
----
-
-**Ready to evaluate your multimodal retrieval models? Check out the [examples](examples/) to get started!**
+This project is part of the MTEB framework ecosystem.

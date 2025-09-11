@@ -1,0 +1,13 @@
+{
+  "encoder": "precomputed",
+  "adapter": "identity",
+  "datasets": "all",
+  "alpha_values": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "beta_values": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "k_values": [1, 5, 10, 50],
+  "index_type": "flat",
+  "engine": {
+    "use_gpu": false,
+    "cache_dir": "cache"
+  }
+}

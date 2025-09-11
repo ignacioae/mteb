@@ -1,0 +1,6 @@
+id,text,image_path,metadata,product_counts,text_embedding,image_embedding
+QUERY001,summer dress for party,images/query_001.jpg,"{""intent"": ""purchase"", ""season"": ""summer"", ""occasion"": ""party""}",15,"[0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 0.5, 0.5, 0.6, 0.3]","[0.2, 0.8, 0.1, 0.9, 0.3, 0.7, 0.4, 0.6, 0.5, 0.2]"
+QUERY002,leather bag for work,images/query_002.jpg,"{""intent"": ""purchase"", ""use_case"": ""work"", ""material"": ""leather""}",8,"[0.6, 0.4, 0.7, 0.3, 0.5, 0.5, 0.8, 0.2, 0.4, 0.6]","[0.4, 0.6, 0.2, 0.8, 0.3, 0.7, 0.1, 0.9, 0.5, 0.4]"
+QUERY003,casual shirt,images/query_003.jpg,"{""intent"": ""browse"", ""style"": ""casual"", ""type"": ""shirt""}",50,"[0.5, 0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.6, 0.4]","[0.6, 0.2, 0.9, 0.1, 0.7, 0.3, 0.8, 0.4, 0.2, 0.6]"
+QUERY004,warm sweater,images/query_004.jpg,"{""intent"": ""purchase"", ""season"": ""winter"", ""warmth"": ""high""}",12,"[0.2, 0.8, 0.5, 0.5, 0.7, 0.3, 0.6, 0.4, 0.4, 0.7]","[0.3, 0.7, 0.1, 0.9, 0.2, 0.8, 0.4, 0.6, 0.7, 0.3]"
+QUERY005,stylish handbag,images/query_005.jpg,"{""intent"": ""purchase"", ""style"": ""stylish"", ""type"": ""handbag""}",5,"[0.7, 0.3, 0.8, 0.2, 0.6, 0.4, 0.7, 0.3, 0.3, 0.8]","[0.5, 0.8, 0.3, 0.6, 0.1, 0.9, 0.2, 0.7, 0.4, 0.1]"

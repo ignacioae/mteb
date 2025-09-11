@@ -1,0 +1,18 @@
+{
+  "encoder": {
+    "type": "mock",
+    "text_dim": 128,
+    "image_dim": 128,
+    "name": "mock_128"
+  },
+  "adapter": "normalize",
+  "datasets": ["electronics"],
+  "alpha_values": [0.0, 0.5, 1.0],
+  "beta_values": [0.0, 0.5, 1.0],
+  "k_values": [1, 5, 10],
+  "index_type": "flat",
+  "engine": {
+    "use_gpu": false,
+    "cache_dir": "cache"
+  }
+}
