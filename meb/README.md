@@ -1,10 +1,10 @@
-# MTBE Advanced Multimodal Evaluation System
+# meb Advanced Multimodal Evaluation System
 
 A sophisticated evaluation system for multimodal text/image retrieval using SLERP (Spherical Linear Interpolation) fusion and advanced indexing with FAISS.
 
 ## Overview
 
-The MTBE (Massive Text and Business Embedding) Advanced System provides a comprehensive framework for evaluating multimodal retrieval models with:
+The meb (Massive Text and Business Embedding) Advanced System provides a comprehensive framework for evaluating multimodal retrieval models with:
 
 - **SLERP Fusion**: Spherical linear interpolation for optimal text/image combination
 - **Extensible Architecture**: Support for custom encoders and adapters
@@ -26,7 +26,7 @@ The MTBE (Massive Text and Business Embedding) Advanced System provides a compre
 ### Basic Evaluation (Precomputed Embeddings)
 
 ```bash
-cd mtbe
+cd meb
 python run_advanced_evaluation.py --config config_examples/basic_config.json
 ```
 
@@ -81,7 +81,7 @@ catalog_fused = slerp(catalog_text_embedding, catalog_image_embedding, β)
 
 ## Dataset Format
 
-The MTBE system requires datasets in CSV format with specific column structures. All datasets must follow this standardized format for proper evaluation.
+The meb system requires datasets in CSV format with specific column structures. All datasets must follow this standardized format for proper evaluation.
 
 ### Catalog Dataset CSV Format
 
@@ -151,7 +151,7 @@ QUERY002,wireless headphones,images/query_headphones.jpg,"{""intent"": ""researc
 ## Project Structure
 
 ```
-mtbe/
+meb/
 ├── run_evaluation.py              # SLERP evaluation script
 ├── run_advanced_evaluation.py     # Advanced evaluation pipeline
 ├── models/

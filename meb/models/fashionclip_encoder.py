@@ -1,17 +1,17 @@
-"""
-FashionCLIP encoder for MTBE evaluation.
-"""
-
 import numpy as np
 from typing import List
 from .encoders import BaseEncoder
-
+from fashion_clip.fashion_clip import FashionCLIP
+from PIL import Image
+from io import BytesIO
+import requests
+from utils.dataset_utils import download_image
 class FashionCLIPEncoder(BaseEncoder):
     """
     Custom encoder for FashionCLIP model.
     """
     
-    def __init__(self, model_path: str = None, device: str = "cpu", name: str = "fashionclip"):
+    def __init__(self, device: str = "cpu", name: str = "fashionclip"):
         """
         Initialize FashionCLIP encoder.
         
@@ -21,7 +21,6 @@ class FashionCLIPEncoder(BaseEncoder):
             name: Name for caching
         """
         super().__init__(name)
-        self.model_path = model_path
         self.device = device
         
         # Initialize your FashionCLIP model here
@@ -32,29 +31,12 @@ class FashionCLIPEncoder(BaseEncoder):
         Load your FashionCLIP model.
         Replace this with your actual model loading code.
         """
-        # Example - replace with your actual FashionCLIP loading
-        print(f"Loading FashionCLIP model from {self.model_path}")
+        print(f"Loading FashionCLIP ")
         
-        # TODO: Replace with actual FashionCLIP model loading
-        # Example:
-        # import torch
-        # from your_fashionclip_package import FashionCLIP
-        # model = FashionCLIP.load_from_checkpoint(self.model_path)
-        # model.to(self.device)
-        # model.eval()
-        # return model
+        fclip = FashionCLIP('fashion-clip')
         
-        # Placeholder for now
-        class MockFashionCLIP:
-            def encode_text(self, texts):
-                # Replace with actual FashionCLIP text encoding
-                return np.random.randn(len(texts), 512)
-            
-            def encode_image(self, images):
-                # Replace with actual FashionCLIP image encoding
-                return np.random.randn(len(images), 512)
-        
-        return MockFashionCLIP()
+        return fclip
+
     
     def encode_text(self, texts: List[str]) -> np.ndarray:
         """
@@ -66,11 +48,10 @@ class FashionCLIPEncoder(BaseEncoder):
         Returns:
             Text embeddings array
         """
-        # Use your actual FashionCLIP text encoder
-        embeddings = self.model.encode_text(texts)
+        embeddings = self.model.encode_text(texts, batch_size=32)
         
-        # Normalize embeddings (recommended for similarity search)
-        embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
+        # Normalize embeddings
+        embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
         
         return embeddings
     
@@ -87,11 +68,10 @@ class FashionCLIPEncoder(BaseEncoder):
         # Load and preprocess images
         images = self._load_images(image_paths)
         
-        # Use your actual FashionCLIP image encoder
-        embeddings = self.model.encode_image(images)
+        embeddings = self.model.encode_images(images, batch_size=32)
         
         # Normalize embeddings
-        embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
+        embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
         
         return embeddings
     
@@ -100,18 +80,14 @@ class FashionCLIPEncoder(BaseEncoder):
         Load and preprocess images.
         Replace with your actual image loading logic.
         """
-        # TODO: Replace with your actual image loading
-        from PIL import Image
         
         images = []
         for path in image_paths:
             try:
-                # Load image
-                img = Image.open(path).convert('RGB')
-                
-                # Apply your FashionCLIP preprocessing
-                # img = your_preprocess_function(img)
-                
+                if path.startswith('http'):
+                    img = download_image(path)
+                else:
+                    img = Image.open(path).convert('RGB')
                 images.append(img)
             except Exception as e:
                 print(f"Warning: Could not load image {path}: {e}")

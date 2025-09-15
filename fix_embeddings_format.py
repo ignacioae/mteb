@@ -100,7 +100,7 @@ def main():
     """Main function to fix provider dataset files."""
     
     # Fix catalog file
-    catalog_path = 'mtbe/datasets/provider/catalog/provider_catalog.csv'
+    catalog_path = 'meb/datasets/provider/catalog/provider_catalog.csv'
     if os.path.exists(catalog_path):
         print("Fixing catalog file...")
         fix_csv_file(catalog_path)
@@ -108,7 +108,7 @@ def main():
         print(f"Catalog file not found: {catalog_path}")
     
     # Fix test file
-    test_path = 'mtbe/datasets/provider/test/provider_test.csv'
+    test_path = 'meb/datasets/provider/test/provider_test.csv'
     if os.path.exists(test_path):
         print("\nFixing test file...")
         fix_csv_file(test_path)

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from mtbe.benchmarks.sample_benchmark import SAMPLE_MULTIMODAL_BENCHMARK
-from mtbe.evaluation import *
-from mtbe.encoder_interface import Encoder, MultimodalEncoder, AdapterEncoder
-from mtbe.models import get_model, get_model_meta, get_model_metas
-from mtbe.overview import (
+from meb.benchmarks.sample_benchmark import SAMPLE_MULTIMODAL_BENCHMARK
+from meb.evaluation import *
+from meb.encoder_interface import Encoder, MultimodalEncoder, AdapterEncoder
+from meb.models import get_model, get_model_meta, get_model_metas
+from meb.overview import (
     TASKS_REGISTRY, 
     get_task, 
     get_tasks, 

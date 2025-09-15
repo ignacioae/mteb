@@ -1,12 +1,12 @@
 """
-SLERP-based multimodal adapter for MTBE evaluations.
+SLERP-based multimodal adapter for meb evaluations.
 Uses spherical interpolation for optimal text/image fusion.
 """
 
 import numpy as np
 import logging
 from typing import List, Tuple
-from ..utils.dataset_utils import slerp
+from .dataset_utils import slerp
 
 logger = logging.getLogger(__name__)
 

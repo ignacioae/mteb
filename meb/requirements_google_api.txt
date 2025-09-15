@@ -1,0 +1,17 @@
+# Google API Encoder Dependencies
+# Install with: pip install -r requirements_google_api.txt
+
+# Core Google Cloud dependencies
+google-cloud-aiplatform>=1.38.0
+vertexai>=1.38.0
+google-auth>=2.17.0
+
+# Additional dependencies for image processing
+Pillow>=9.0.0
+
+# Optional: For enhanced async support
+aiohttp>=3.8.0
+
+# Note: These are in addition to the base meb requirements
+# Make sure you also have the base dependencies installed:
+# numpy, pandas, scikit-learn, etc.

@@ -1,8 +1,3 @@
-"""
-Extensible encoder system for MTBE evaluations.
-Supports custom models, HuggingFace models, and caching.
-"""
-
 import os
 import hashlib
 import pickle
@@ -195,15 +190,31 @@ class MockEncoder(BaseEncoder):
         np.random.seed(42)
     
     def encode_text(self, texts: List[str]) -> np.ndarray:
-        """Generate random text embeddings."""
-        embeddings = np.random.randn(len(texts), self.text_dim)
+        """Generate deterministic text embeddings based on text content."""
+        embeddings = []
+        for i, text in enumerate(texts):
+            # Use hash of text for deterministic embeddings
+            text_hash = hash(text + "text") % (2**31)
+            np.random.seed(text_hash)
+            embedding = np.random.randn(self.text_dim)
+            embeddings.append(embedding)
+        
+        embeddings = np.array(embeddings)
         # Normalize embeddings
         embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
         return embeddings
     
     def encode_image(self, image_paths: List[str]) -> np.ndarray:
-        """Generate random image embeddings."""
-        embeddings = np.random.randn(len(image_paths), self.image_dim)
+        """Generate deterministic image embeddings based on image path."""
+        embeddings = []
+        for i, image_path in enumerate(image_paths):
+            # Use hash of image path for deterministic embeddings
+            path_hash = hash(image_path + "image") % (2**31)
+            np.random.seed(path_hash)
+            embedding = np.random.randn(self.image_dim)
+            embeddings.append(embedding)
+        
+        embeddings = np.array(embeddings)
         # Normalize embeddings
         embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
         return embeddings
@@ -211,83 +222,6 @@ class MockEncoder(BaseEncoder):
     def get_config_hash(self) -> str:
         """Include dimensions in config hash."""
         config_str = f"{self.name}_{self.text_dim}_{self.image_dim}"
-        return hashlib.md5(config_str.encode()).hexdigest()[:8]
-
-
-class HuggingFaceEncoder(BaseEncoder):
-    """
-    Encoder using HuggingFace Sentence Transformers.
-    Supports both text and image models.
-    """
-    
-    def __init__(self, text_model_name: str, image_model_name: str = None, 
-                 name: str = None, device: str = "cpu"):
-        """
-        Initialize HuggingFace encoder.
-        
-        Args:
-            text_model_name: Name of the text model on HuggingFace
-            image_model_name: Name of the image model (optional)
-            name: Custom name for the encoder
-            device: Device to run models on ('cpu', 'cuda', etc.)
-        """
-        if name is None:
-            name = f"hf_{text_model_name.replace('/', '_')}"
-        
-        super().__init__(name)
-        self.text_model_name = text_model_name
-        self.image_model_name = image_model_name
-        self.device = device
-        
-        # Lazy loading of models
-        self._text_model = None
-        self._image_model = None
-    
-    @property
-    def text_model(self):
-        """Lazy load text model."""
-        if self._text_model is None:
-            try:
-                from sentence_transformers import SentenceTransformer
-                self._text_model = SentenceTransformer(self.text_model_name, device=self.device)
-                logger.info(f"Loaded text model: {self.text_model_name}")
-            except ImportError:
-                raise ImportError("sentence-transformers is required for HuggingFaceEncoder")
-        return self._text_model
-    
-    @property
-    def image_model(self):
-        """Lazy load image model."""
-        if self._image_model is None and self.image_model_name:
-            try:
-                from sentence_transformers import SentenceTransformer
-                self._image_model = SentenceTransformer(self.image_model_name, device=self.device)
-                logger.info(f"Loaded image model: {self.image_model_name}")
-            except ImportError:
-                raise ImportError("sentence-transformers is required for HuggingFaceEncoder")
-        return self._image_model
-    
-    def encode_text(self, texts: List[str]) -> np.ndarray:
-        """Encode texts using HuggingFace model."""
-        embeddings = self.text_model.encode(texts, convert_to_numpy=True)
-        return embeddings
-    
-    def encode_image(self, image_paths: List[str]) -> np.ndarray:
-        """Encode images using HuggingFace model."""
-        if self.image_model_name is None:
-            # Fallback to random embeddings if no image model specified
-            logger.warning("No image model specified, using random embeddings")
-            return np.random.randn(len(image_paths), 512)
-        
-        # Load images and encode
-        from PIL import Image
-        images = [Image.open(path) for path in image_paths]
-        embeddings = self.image_model.encode(images, convert_to_numpy=True)
-        return embeddings
-    
-    def get_config_hash(self) -> str:
-        """Include model names in config hash."""
-        config_str = f"{self.text_model_name}_{self.image_model_name}_{self.device}"
         return hashlib.md5(config_str.encode()).hexdigest()[:8]
 
 
@@ -364,35 +298,65 @@ def get_encoder(encoder_config: Union[str, Dict[str, Any]]) -> BaseEncoder:
     """
     if isinstance(encoder_config, str):
         # Simple string configuration
-        if encoder_config == "mock":
-            return MockEncoder()
-        elif encoder_config == "precomputed":
+        if encoder_config == "precomputed":
             return PrecomputedEncoder()
-        else:
-            # Assume it's a HuggingFace model name
-            return HuggingFaceEncoder(text_model_name=encoder_config)
+        elif encoder_config == "google_adapter":
+            # Import here to avoid circular imports
+            from .google_adapter import GoogleAdapter
+            return GoogleAdapter()
+        elif encoder_config == "google_api":
+            # Import here to avoid circular imports
+            from .google_api_encoder import GoogleAPIEncoder
+            # Note: This requires project_id to be set via environment variable
+            # or use dictionary configuration for full control
+            project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
+            if not project_id:
+                raise ValueError(
+                    "Google Cloud project ID not found. Please set GOOGLE_CLOUD_PROJECT "
+                    "environment variable or use dictionary configuration with 'project_id'"
+                )
+            return GoogleAPIEncoder(project_id=project_id)
+        elif encoder_config == "mock":
+            return MockEncoder()
+        # elif encoder_config == "finetuned":
+        #     # Import here to avoid circular imports
+        #     from .finetuning_adapter import FinetunedEncoder
+        #     return FinetunedEncoder()
     
     elif isinstance(encoder_config, dict):
         # Dictionary configuration
         encoder_type = encoder_config.get("type", "mock")
         
-        if encoder_type == "mock":
-            return MockEncoder(
-                text_dim=encoder_config.get("text_dim", 128),
-                image_dim=encoder_config.get("image_dim", 128),
-                name=encoder_config.get("name", "mock")
-            )
-        
-        elif encoder_type == "huggingface":
-            return HuggingFaceEncoder(
-                text_model_name=encoder_config["text_model"],
-                image_model_name=encoder_config.get("image_model"),
-                name=encoder_config.get("name"),
-                device=encoder_config.get("device", "cpu")
-            )
-        
-        elif encoder_type == "precomputed":
+        if encoder_type == "precomputed":
             return PrecomputedEncoder(name=encoder_config.get("name", "precomputed"))
+        
+        elif encoder_type == "google_api":
+            # Import here to avoid circular imports
+            from .google_api_encoder import GoogleAPIEncoder
+            return GoogleAPIEncoder(
+                project_id=encoder_config["project_id"],  # Required
+                location=encoder_config.get("location", "us-central1"),
+                text_model=encoder_config.get("text_model", "text-embedding-004"),
+                image_model=encoder_config.get("image_model", "multimodalembedding@001"),
+                credentials_path=encoder_config.get("credentials_path"),
+                rate_limit_requests_per_minute=encoder_config.get("rate_limit_requests_per_minute", 60),
+                batch_size=encoder_config.get("batch_size", 5),
+                max_retries=encoder_config.get("max_retries", 3),
+                timeout=encoder_config.get("timeout", 30),
+                name=encoder_config.get("name", "google_api"),
+                cache_dir=encoder_config.get("cache_dir", "cache")
+            )
+        
+        elif encoder_type == "adapter":
+            # Import here to avoid circular imports
+            from .google_adapter import Adapter
+            return Adapter(
+                base_encoder=encoder_config.get("base_encoder", "precomputed"),
+                model_path=encoder_config.get("model_path"),
+                transformation_type=encoder_config.get("transformation_type", "linear"),
+                name=encoder_config.get("name", "adapter"),
+                cache_dir=encoder_config.get("cache_dir", "cache")
+            )
         
         else:
             raise ValueError(f"Unknown encoder type: {encoder_type}")

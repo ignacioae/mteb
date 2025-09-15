@@ -1,5 +1,5 @@
 """
-Dataset utilities for loading and managing MTBE datasets.
+Dataset utilities for loading and managing meb datasets.
 Extracted from adapter_models.py to remove centroid dependencies.
 """
 
@@ -9,12 +9,15 @@ import glob
 import logging
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
+import requests
+import io
+from PIL import Image
+import random
 
 logger = logging.getLogger(__name__)
 
 
-def load_catalog_data(csv_path: str) -> Tuple[List[str], List[str], List[str], List[str], 
-                                           np.ndarray, np.ndarray]:
+def load_catalog_data(csv_path: str) -> Tuple[List[str], List[str], List[str], List[str], np.ndarray, np.ndarray]:
     """
     Load catalog data from CSV file with standardized format.
     
@@ -128,7 +131,7 @@ def load_dataset(dataset_name: str, catalog_file: str = None, test_file: str = N
                      If None, loads the first available catalog file
         test_file: Specific test file to load (e.g., 'test_queries.csv', 'seasonal_queries.csv')
                   If None, loads the first available test file
-        base_path: Base path to datasets directory. If None, uses default mtbe/datasets
+        base_path: Base path to datasets directory. If None, uses default meb/datasets
     
     Returns:
         Tuple of (catalog_data, test_data) where:
@@ -278,3 +281,23 @@ def slerp(v1: np.ndarray, v2: np.ndarray, t: float) -> np.ndarray:
     
     result = factor1 * v1_norm + factor2 * v2_norm
     return result / (np.linalg.norm(result) + 1e-8)
+
+
+def download_image(url: str) -> Image.Image:
+    user_agents=[
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
+        'Mozilla/5.0 (Linux; Android 13; SM-S901B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36',
+        'Mozilla/5.0 (Linux; Android 13; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36',
+        'Mozilla/5.0 (iPhone14,3; U; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/19A346 Safari/602.1',
+        'Mozilla/5.0 (iPhone13,2; U; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/15E148 Safari/602.1',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+        'Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36',
+        'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1'
+        ]
+    
+    response = requests.get(url, headers={'User-Agent': random.choice(user_agents)})
+    response.raise_for_status()
+    img = Image.open(io.BytesIO(response.content)).convert('RGB')
+    
+    return img
