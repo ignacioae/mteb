@@ -6,10 +6,13 @@ from typing import Any
 import numpy as np
 import tqdm
 
+from scipy.spatial import geometric_slerp
+
 from mteb.encoder_interface import Encoder, PromptType
 from mteb.model_meta import ModelMeta
 from mteb.models.wrapper import Wrapper
 from mteb.requires_package import requires_package
+from mteb.interpolate_embeddings import slerp
 
 MULTILINGUAL_EVALUATED_LANGUAGES = [
     "arb-Arab",
@@ -48,6 +51,12 @@ GECKO_TRAINING_DATA = {
     "FEVERHardNegatives": ["train"],
     "HotpotQAHardNegatives": ["train"],
     "MIRACLRetrievalHardNegatives": ["train"],
+}
+
+MULTIMODAL_TRAINING_DATA = {
+    "ProviderImagesDescriptions": ["train"],
+    "InstagramImagesDescriptions": ["train"],
+    "WebImagesAdd2CartQueries": ["train"],
 }
 
 
@@ -256,4 +265,167 @@ embedding_gemma_300m = ModelMeta(
     training_datasets=GECKO_TRAINING_DATA,
     similarity_fn_name="cosine",
     memory_usage_mb=578,
+)
+
+class GoogleMultimodalEmbeddingModel(Encoder, Wrapper):
+    """Google Multimodal Embedding Model for embedding text and images."""    
+    def __init__(
+        self,
+        model_name: str,
+        **kwargs,
+    ) -> None:
+        self.model_name = model_name
+
+    def _embed(
+        self,
+        images: list[str] | None = None,
+        texts: list[str] | None = None,
+        alpha: float = 0.5,
+        show_progress_bar: bool = False,
+        dimensionality: int | None = 1408,
+    ) -> np.ndarray:
+        """Embeds multimodal content with a pre-trained, foundational model.
+        
+        Args:
+            images: List of image file paths to embed
+            texts: List of text strings to embed
+            alpha: Interpolation weight for combining text and image embeddings (0.0 = all image, 1.0 = all text)
+            show_progress_bar: Whether to show progress bar during processing
+            dimensionality: Output dimensionality for embeddings
+            
+        Returns:
+            Array of embeddings
+            
+        Raises:
+            ValueError: If neither images nor texts are provided, or if lengths don't match when both are provided
+            
+        Reference:
+            https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/get-multimodal-embeddings
+        """
+        if not images and not texts:
+            raise ValueError("At least one of 'images' or 'texts' must be provided")
+            
+        if images and texts and len(images) != len(texts):
+            raise ValueError(f"When both images and texts are provided, they must have the same length. "
+                            f"Got {len(images)} images and {len(texts)} texts")
+        
+        requires_package(
+            self, "vertexai", self.model_name, "pip install 'mteb[vertexai]'"
+        )
+        from vertexai.vision_models import MultiModalEmbeddingModel, Image
+
+        model = MultiModalEmbeddingModel.from_pretrained(self.model_name)
+        max_batch_size = 32
+        embed_kwargs = {"output_dimensionality": dimensionality} if dimensionality else {}
+        
+        all_img_embeddings = None
+        all_text_embeddings = None
+        
+        if images:
+            try:
+                img_inputs = [Image.load_from_file(image) for image in images]
+            except Exception as e:
+                raise ValueError(f"Failed to load image files: {e}")
+            
+            img_batches = [
+                img_inputs[i : i + max_batch_size] 
+                for i in range(0, len(img_inputs), max_batch_size)
+            ]
+            
+            all_img_embeddings = []
+            for batch in tqdm.tqdm(img_batches, desc="Processing images", leave=False, disable=not show_progress_bar):
+                try:
+                    img_embeddings_batch = model.get_embeddings(images=batch, **embed_kwargs)
+                except Exception as e:
+                    print(f"Retrying image batch after error: {e}")
+                    try:
+                        img_embeddings_batch = model.get_embeddings(images=batch, **embed_kwargs)
+                    except Exception as retry_e:
+                        raise RuntimeError(f"Failed to get image embeddings after retry: {retry_e}")
+
+                all_img_embeddings.extend([embedding.image_embedding for embedding in img_embeddings_batch])
+
+        if texts:
+            text_batches = [
+                texts[i : i + max_batch_size] 
+                for i in range(0, len(texts), max_batch_size)
+            ]
+            
+            all_text_embeddings = []
+            for batch in tqdm.tqdm(text_batches, desc="Processing texts", leave=False, disable=not show_progress_bar):
+                try:
+                    text_embeddings_batch = model.get_embeddings(contextual_text=batch, **embed_kwargs)
+                except Exception as e:
+                    print(f"Retrying text batch after error: {e}")
+                    try:
+                        text_embeddings_batch = model.get_embeddings(contextual_text=batch, **embed_kwargs)
+                    except Exception as retry_e:
+                        raise RuntimeError(f"Failed to get text embeddings after retry: {retry_e}")
+
+                all_text_embeddings.extend([embedding.text_embedding for embedding in text_embeddings_batch])
+                
+        if texts and images:
+            all_embeddings = [
+                slerp(img_emb, text_emb, alpha)
+                for img_emb, text_emb in zip(all_img_embeddings, all_text_embeddings)
+            ]
+        elif texts and not images:
+            all_embeddings = all_text_embeddings
+        elif images and not texts:
+            all_embeddings = all_img_embeddings
+            
+        return np.asarray(all_embeddings)
+
+    def encode(
+        self,
+        sentences: list[str] | None = None,
+        images: list[str] | None = None,
+        alpha: float = 0.5,
+        **kwargs: Any,
+    ) -> np.ndarray:
+        """Encode text and/or images into embeddings.
+        
+        Args:
+            sentences: List of text strings to encode
+            images: List of image file paths to encode
+            alpha: Interpolation weight when both text and images are provided (0.0 = all image, 1.0 = all text)
+            **kwargs: Additional keyword arguments
+            
+        Returns:
+            Array of embeddings
+        """
+        show_progress_bar = kwargs.pop("show_progress_bar", False)
+        dimensionality = kwargs.pop("dimensionality", 1408)
+
+        return self._embed(
+            texts=sentences,
+            images=images,
+            alpha=alpha,
+            show_progress_bar=show_progress_bar,
+            dimensionality=dimensionality,
+        )
+
+
+google_multimodal_embedding_001 = ModelMeta(
+    loader=partial(
+        GoogleMultimodalEmbeddingModel,
+        model_name="multimodalembedding@001",
+    ),
+    name="google/multimodalembedding@001",
+    languages=MULTILINGUAL_EVALUATED_LANGUAGES,
+    open_weights=False,
+    revision="1",
+    release_date="2024-05-14",
+    n_parameters=None,
+    memory_usage_mb=None,
+    max_tokens=2048,
+    embed_dim=1408,
+    license=None,
+    reference="https://cloud.google.com/vertex-ai/generative-ai/docs/embeddings/get-multimodal-embeddings",
+    similarity_fn_name="cosine",
+    framework=["API"],
+    use_instructions=False,
+    public_training_code=None,
+    public_training_data=None,
+    training_datasets=MULTIMODAL_TRAINING_DATA,
 )
